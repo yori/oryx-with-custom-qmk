@@ -61,7 +61,7 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
     }
 }
 
-bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
+bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
         case LT(1,KC_ENTER):
         case LT(2,KC_SPACE):
@@ -72,6 +72,18 @@ bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
             return false;
     }
 }
+
+// bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
+//   switch (keycode) {
+//         case LT(1,KC_ENTER):
+//         case LT(2,KC_SPACE):
+//             // Immediately select the hold action when another key is tapped.
+//             return true;
+//         default:
+//             // Do not select the hold action when another key is tapped.
+//             return false;
+//     }
+// }
 
 extern rgb_config_t rgb_matrix_config;
 
