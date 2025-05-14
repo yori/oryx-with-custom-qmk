@@ -25,7 +25,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_GRAVE,       KC_Q,           KC_W,           KC_E,           KC_R,           KC_T,                                           KC_Y,           KC_U,           MT(MOD_RGUI, KC_I),KC_O,           KC_P,           KC_BSLS,        
     KC_TAB,         MT(MOD_LSFT, KC_A),MT(MOD_LCTL, KC_S),MT(MOD_LALT, KC_D),MT(MOD_LGUI, KC_F),KC_G,                                           KC_H,           MT(MOD_RGUI, KC_J),MT(MOD_RALT, KC_K),MT(MOD_RCTL, KC_L),MT(MOD_RSFT, KC_SCLN),KC_QUOTE,       
     KC_LEFT_CTRL,   KC_Z,           KC_X,           KC_C,           KC_V,           KC_B,                                           KC_N,           KC_M,           KC_COMMA,       KC_DOT,         KC_SLASH,       KC_RIGHT_CTRL,  
-                                                    LT(1,KC_ENTER), MT(MOD_LGUI, KC_ESCAPE),                                LT(2,KC_BSPC),  KC_SPACE
+                                                    LT(1,KC_ENTER), MT(MOD_LGUI, KC_ESCAPE),                                KC_BSPC,        LT(2,KC_SPACE)
   ),
   [1] = LAYOUT_voyager(
     KC_TRANSPARENT, KC_F1,          KC_F2,          KC_F3,          KC_F4,          KC_F5,                                          KC_F6,          KC_F7,          KC_F8,          KC_F9,          KC_F10,         KC_F11,         
@@ -62,9 +62,7 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
             return TAPPING_TERM -150;
         case MT(MOD_RSFT, KC_SCLN):
             return TAPPING_TERM -100;
-        case LT(2,KC_BSPC):
-            return TAPPING_TERM -150;
-        case KC_SPACE:
+        case KC_BSPC:
             return TAPPING_TERM -150;
         default:
             return TAPPING_TERM;
