@@ -55,9 +55,9 @@ LAYOUT(
 uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case LT(1,KC_ENTER):
-            return TAPPING_TERM -150;
+            return TAPPING_TERM -75;
         case LT(2,KC_SPACE):
-            return TAPPING_TERM -150;
+            return TAPPING_TERM -75;
         default:
             return TAPPING_TERM;
     }
