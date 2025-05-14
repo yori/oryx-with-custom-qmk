@@ -54,14 +54,6 @@ LAYOUT(
 
 uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
-        case MT(MOD_LSFT, KC_A):
-            return TAPPING_TERM -100;
-        case LT(1,KC_ENTER):
-            return TAPPING_TERM -150;
-        case MT(MOD_LGUI, KC_ESCAPE):
-            return TAPPING_TERM -150;
-        case MT(MOD_RSFT, KC_SCLN):
-            return TAPPING_TERM -100;
         case KC_BSPC:
             return TAPPING_TERM -150;
         default:
