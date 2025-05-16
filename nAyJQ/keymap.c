@@ -78,6 +78,17 @@ bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
     }
 }
 
+uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case MT(MOD_LSFT, KC_A):
+            return TAPPING_TERM -50;
+        case MT(MOD_RSFT, KC_SCLN):
+            return TAPPING_TERM -50;
+        default:
+            return TAPPING_TERM;
+    }
+}
+
 extern rgb_config_t rgb_matrix_config;
 
 void keyboard_post_init_user(void) {
