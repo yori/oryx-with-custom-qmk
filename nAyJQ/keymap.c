@@ -56,10 +56,8 @@ LAYOUT(
 //   switch (keycode) {
 //         case LT(1,KC_ENTER):
 //         case LT(2,KC_SPACE):
-//         case MT(MOD_LSFT, KC_A):
-//         case MT(MOD_RSFT, KC_SCLN):
 //             // Immediately select the hold action when another key is tapped.
-//             return true;
+//             return record;
 //         default:
 //             // Do not select the hold action when another key is tapped.
 //             return false;
