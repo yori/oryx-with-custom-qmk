@@ -53,17 +53,17 @@ LAYOUT(
                         '*', '*',  '*', '*'
 );
 
-// bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
-//   switch (keycode) {
-//         case LT(1,KC_ENTER):
-//         case LT(2,KC_SPACE):
-//             // Immediately select the hold action when another key is tapped.
-//             return record;
-//         default:
-//             // Do not select the hold action when another key is tapped.
-//             return false;
-//     }
-// }
+bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
+  switch (keycode) {
+        case LT(1,KC_ENTER):
+        case LT(2,KC_SPACE):
+            // Immediately select the hold action when another key is tapped.
+            return record->tap.count == 2;
+        default:
+            // Do not select the hold action when another key is tapped.
+            return false;
+    }
+}
 
 bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
