@@ -57,7 +57,7 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
         case LT(1,KC_ENTER):
         case LT(2,KC_SPACE):
-            // Immediately select the hold action when another key is tapped.
+            // Only select the hold action if thumb key was recently tapped prior to this press.
             return record->tap.count == 1;
         default:
             // Do not select the hold action when another key is tapped.
