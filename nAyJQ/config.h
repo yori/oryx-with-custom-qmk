@@ -2,16 +2,17 @@
 #undef TAPPING_TERM
 #define TAPPING_TERM 250
 
-#define PERMISSIVE_HOLD
+#define RETRO_TAPPING
 
-#define QUICK_TAP_TERM 0
+#define PERMISSIVE_HOLD
 
 #undef RGB_MATRIX_TIMEOUT
 #define RGB_MATRIX_TIMEOUT 900000
 
 #define USB_SUSPEND_WAKEUP_DELAY 0
-#define SERIAL_NUMBER "nAyJQ/6a53aX"
+#define SERIAL_NUMBER "nAyJQ/v6rJqn"
 #define LAYER_STATE_8BIT
+#define HCS(report) host_consumer_send(record->event.pressed ? report : 0); return false
 
 #define TAPPING_TERM_PER_KEY
 #define RGB_MATRIX_STARTUP_SPD 60
