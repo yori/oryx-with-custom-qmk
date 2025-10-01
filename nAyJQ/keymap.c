@@ -294,7 +294,7 @@ tap_dance_action_t tap_dance_actions[] = {
 
 // Tunables
 #ifndef HR_GRACE_MS
-    define HR_GRACE_MS 40  // grace window for near-simultaneous thumb+home-row (ms)
+    #define HR_GRACE_MS 40  // grace window for near-simultaneous thumb+home-row (ms)
 #endif
 
 // --- Identify your thumb *positions* (row, col) on each side ----------------
