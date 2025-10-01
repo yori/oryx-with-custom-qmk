@@ -327,18 +327,6 @@ static inline bool pos_match(uint8_t row, uint8_t col, const pos_t *list, size_t
     return false;
 }
 
-// --- Custom keycodes for home-row keys -------------------------------------
-enum custom_keycodes {
-    HR_A = SAFE_RANGE,
-    HR_S,
-    HR_D,
-    HR_F,
-    HR_J,
-    HR_K,
-    HR_L,
-    HR_SCLN,
-};
-
 // Map each HR_* to its tap (letter) and its modifier, and which side it belongs to.
 typedef enum { HR_IDLE, HR_PENDING, HR_SENT_LETTER, HR_HELD_MOD } hr_state_t;
 typedef struct {
