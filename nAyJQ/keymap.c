@@ -283,7 +283,174 @@ tap_dance_action_t tap_dance_actions[] = {
         [DANCE_1] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_1, dance_1_finished, dance_1_reset),
 };
 
+// --- Home-row mods gated by same-side thumb hold ---------------------------
+// Put this in keymap.c. Replace the LEFT/RIGHT_THUMB_POS arrays with your
+// board's physical positions for the thumb keys you want to count as "held".
+// Then place HR_* custom keycodes (below) on your home row in the keymap.
+//
+// Behavior:
+// - If you press a home-row key while the same-side thumb is down -> acts as MOD (hold)
+// - If no thumb is down -> acts as the letter
+// - If pressed nearly simultaneously: a small grace window (HR_GRACE_MS) resolves to MOD
+// - If the letter was sent and you press the same-side thumb afterward, it flips to MOD
+
+// Tunables
+#ifndef HR_GRACE_MS
+    define HR_GRACE_MS 40  // grace window for near-simultaneous thumb+home-row (ms)
+#endif
+
+// --- Identify your thumb *positions* (row, col) on each side ----------------
+// TODO: Replace these with the actual positions for your keyboard.
+// You can quickly discover them by enabling key logging or printing row/col
+// in process_record_user for your thumb keys.
+typedef struct { uint8_t row, col; } pos_t;
+
+static const pos_t LEFT_THUMB_POS[]  = {
+    /* {row, col}, {row, col}, ... */
+    // {5, 0}, {5, 1}, {5, 2},  // ← Example only; fill with your real positions
+    {4, 1}
+};
+static const pos_t RIGHT_THUMB_POS[] = {
+    /* {row, col}, {row, col}, ... */
+    // {5, 13}, {5, 14}, {5, 15}, // ← Example only; fill with your real positions
+    {4, 2}
+};
+
+static inline bool pos_match(uint8_t row, uint8_t col, const pos_t *list, size_t n) {
+    for (size_t i = 0; i < n; i++) if (list[i].row == row && list[i].col == col) return true;
+    return false;
+}
+
+// --- Custom keycodes for home-row keys -------------------------------------
+enum custom_keycodes {
+    HR_A = SAFE_RANGE,
+    HR_S,
+    HR_D,
+    HR_F,
+    HR_J,
+    HR_K,
+    HR_L,
+    HR_SCLN,
+};
+
+// Map each HR_* to its tap (letter) and its modifier, and which side it belongs to.
+typedef enum { HR_IDLE, HR_PENDING, HR_SENT_LETTER, HR_HELD_MOD } hr_state_t;
+typedef struct {
+    uint16_t keycode;   // HR_* custom code
+    uint16_t tap_kc;    // the letter (e.g., KC_A)
+    uint8_t  mod_mask;  // e.g., MOD_BIT(KC_LCTL)
+    bool     is_left;   // true=left side, false=right side
+    hr_state_t state;
+    uint16_t t_started; // for grace window
+} hrm_entry_t;
+
+// Typical HRM mapping (customize to taste).
+static hrm_entry_t hrm[] = {
+    {HR_A,    KC_A,    MOD_BIT(KC_LSFT), true,  HR_IDLE, 0},
+    {HR_S,    KC_S,    MOD_BIT(KC_LCTL), true,  HR_IDLE, 0},
+    {HR_D,    KC_D,    MOD_BIT(KC_LALT), true,  HR_IDLE, 0},
+    {HR_F,    KC_F,    MOD_BIT(KC_LGUI), true,  HR_IDLE, 0},
+    {HR_J,    KC_J,    MOD_BIT(KC_RGUI), false, HR_IDLE, 0},
+    {HR_K,    KC_K,    MOD_BIT(KC_RALT), false, HR_IDLE, 0},
+    {HR_L,    KC_L,    MOD_BIT(KC_RCTL), false, HR_IDLE, 0},
+    {HR_SCLN, KC_SCLN, MOD_BIT(KC_RSFT), false, HR_IDLE, 0},
+};
+#define HR_COUNT (sizeof(hrm) / sizeof(hrm[0]))
+
+static inline int8_t hr_index_from_keycode(uint16_t kc) {
+    for (uint8_t i = 0; i < HR_COUNT; i++) if (hrm[i].keycode == kc) return i;
+    return -1;
+}
+
+// Thumb state (updated by *position*)
+static bool left_thumb_down  = false;
+static bool right_thumb_down = false;
+
+static inline bool same_side_thumb_down(bool is_left) {
+    return is_left ? left_thumb_down : right_thumb_down;
+}
+
+static void hr_flip_to_mod(uint8_t i) {
+    if (hrm[i].state == HR_HELD_MOD) return;
+    if (hrm[i].state == HR_SENT_LETTER) {
+        unregister_code16(hrm[i].tap_kc);  // retract the letter if already sent
+    }
+    hrm[i].state = HR_HELD_MOD;
+    register_mods(hrm[i].mod_mask);
+}
+
+static void hr_send_letter_if_pending(uint8_t i) {
+    if (hrm[i].state == HR_PENDING) {
+        hrm[i].state = HR_SENT_LETTER;
+        register_code16(hrm[i].tap_kc);
+    }
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  // Track thumb holds by *physical position*
+  if (record->event.pressed) {
+      if (pos_match(record->event.key.row, record->event.key.col, LEFT_THUMB_POS,  ARRAY_SIZE(LEFT_THUMB_POS))) {
+          left_thumb_down = true;
+      } else if (pos_match(record->event.key.row, record->event.key.col, RIGHT_THUMB_POS, ARRAY_SIZE(RIGHT_THUMB_POS))) {
+          right_thumb_down = true;
+      }
+  } else {
+      if (pos_match(record->event.key.row, record->event.key.col, LEFT_THUMB_POS,  ARRAY_SIZE(LEFT_THUMB_POS))) {
+          left_thumb_down = false;
+      } else if (pos_match(record->event.key.row, record->event.key.col, RIGHT_THUMB_POS, ARRAY_SIZE(RIGHT_THUMB_POS))) {
+          right_thumb_down = false;
+      }
+  }
+  
+  // Handle our custom home-row keys
+  int8_t idx = hr_index_from_keycode(keycode);
+  if (idx >= 0) {
+      hrm_entry_t *k = &hrm[idx];
+  
+      if (record->event.pressed) {
+          if (same_side_thumb_down(k->is_left)) {
+              // Thumb already down → act as MOD immediately
+              k->state = HR_HELD_MOD;
+              register_mods(k->mod_mask);
+          } else {
+              // Start pending; wait briefly to see if thumb goes down
+              k->state     = HR_PENDING;
+              k->t_started = timer_read();
+          }
+      } else { // key released
+          switch (k->state) {
+              case HR_HELD_MOD:
+                  unregister_mods(k->mod_mask);
+                  break;
+              case HR_SENT_LETTER:
+                  unregister_code16(k->tap_kc);
+                  break;
+              case HR_PENDING:
+                  // Fast tap that ended before grace expired and before letter was sent:
+                  tap_code16(k->tap_kc);
+                  break;
+              default:
+                  break;
+          }
+          k->state = HR_IDLE;
+      }
+      return false; // we've handled HR_*; don't let QMK process it further
+  }
+  
+  // If a thumb key went down, convert any *pending* or even *letter-sent* same-side HR to MOD.
+  if (record->event.pressed &&
+      (pos_match(record->event.key.row, record->event.key.col, LEFT_THUMB_POS, ARRAY_SIZE(LEFT_THUMB_POS)) ||
+       pos_match(record->event.key.row, record->event.key.col, RIGHT_THUMB_POS, ARRAY_SIZE(RIGHT_THUMB_POS)))) {
+      bool thumb_is_left = pos_match(record->event.key.row, record->event.key.col, LEFT_THUMB_POS, ARRAY_SIZE(LEFT_THUMB_POS));
+      for (uint8_t i = 0; i < HR_COUNT; i++) {
+          if (hrm[i].state == HR_PENDING || hrm[i].state == HR_SENT_LETTER) {
+              if (hrm[i].is_left == thumb_is_left) {
+                  hr_flip_to_mod(i);
+              }
+          }
+      }
+  }
+
   switch (keycode) {
     case ST_MACRO_0:
     if (record->event.pressed) {
@@ -339,4 +506,18 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       return false;
   }
   return true;
+}
+
+// Resolve pending HR taps after the grace window.
+void matrix_scan_user(void) {
+    const uint16_t now = timer_read();
+    for (uint8_t i = 0; i < HR_COUNT; i++) {
+        if (hrm[i].state == HR_PENDING) {
+            if (same_side_thumb_down(hrm[i].is_left)) {
+                hr_flip_to_mod(i);
+            } else if (timer_elapsed(hrm[i].t_started) > HR_GRACE_MS) {
+                hr_send_letter_if_pending(i);
+            }
+        }
+    }
 }
