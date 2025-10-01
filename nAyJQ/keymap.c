@@ -11,6 +11,14 @@ enum custom_keycodes {
   ST_MACRO_0,
   ST_MACRO_1,
   MAC_SPOTLIGHT,
+  HR_A,
+  HR_S,
+  HR_D,
+  HR_F,
+  HR_J,
+  HR_K,
+  HR_L,
+  HR_SCLN,
 };
 
 
@@ -510,7 +518,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 // Resolve pending HR taps after the grace window.
 void matrix_scan_user(void) {
-    const uint16_t now = timer_read();
+    // const uint16_t now = timer_read();
     for (uint8_t i = 0; i < HR_COUNT; i++) {
         if (hrm[i].state == HR_PENDING) {
             if (same_side_thumb_down(hrm[i].is_left)) {
