@@ -10,9 +10,10 @@
 #define RGB_MATRIX_TIMEOUT 900000
 
 #define USB_SUSPEND_WAKEUP_DELAY 0
-#define SERIAL_NUMBER "EYYQA/pjD7aL"
+#define SERIAL_NUMBER "EYYQA/Ma4vzY"
 #define LAYER_STATE_8BIT
-#define COMBO_COUNT 6
+#define COMBO_COUNT 4
+#define HCS(report) host_consumer_send(record->event.pressed ? report : 0); return false
 
 #define TAPPING_TERM_PER_KEY
 #define RGB_MATRIX_STARTUP_SPD 60
